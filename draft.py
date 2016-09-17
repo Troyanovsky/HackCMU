@@ -9,7 +9,7 @@ import random
 class Main(object):
     def __init__(self,width,height):
         self.maxsceneNum = 3
-        self.sceneNum = 0
+        self.sceneNum = 2
         self.width = width
         self.height = height
         self.timerDelay = 10
@@ -238,6 +238,7 @@ Try the script below and press Command + b to execute:\nwhile(the door is not op
             canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
         elif self.stageNum == 1:
             canvas.create_text(self.textWidth, self.textHeight, text=self.dormText, font="Calibri 25", fill="white")
+
 class WelcomeScreen(Scene):
     def __init__(self,root):
         super().__init__(root)
@@ -551,6 +552,7 @@ for loop'''
 
     def timerFired(self):
         if self.stageNum == 0:
+            print(self.root.content)
             if self.root.content:
                 for line in self.root.content.splitlines():
                     if line.endswith(".see()") and line.startswith("bread"):
