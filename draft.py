@@ -8,8 +8,8 @@ import random
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
     def __init__(self,width,height):
-        self.maxsceneNum = 3
-        self.sceneNum = 2
+        self.maxsceneNum = 4
+        self.sceneNum = 0
         self.width = width
         self.height = height
         self.timerDelay = 10
@@ -104,8 +104,8 @@ class Main(object):
             # else:
             #     self.loadScene()
     def init(self):
-        self.mode = DormScene(self.root)
-        # self.buildScene()
+        # self.mode = DormScene(self.root)
+        self.buildScene()
     def buildScene(self):
         if (self.sceneNum == 0):
             self.root.content = ""
@@ -115,7 +115,10 @@ class Main(object):
             self.mode = MapScene(self.root)
         elif (self.sceneNum == 2):
             self.root.content = ""
-            # self.node = DormScene(self.root)
+            self.mode = DormScene(self.root)
+        elif (self.sceneNum == 3):
+            self.root.content = ""
+            self.root.editor.delete("1.0","end")
             self.mode = EntropyScene(self.root)
 
 
@@ -440,6 +443,7 @@ class DormScene(Scene):
         pass
 
     def init(self,root):
+        self.root.editor.delete("1.0","end")
         self.refreshText(self.root.dialog, "")
         self.refreshText(self.root.explanation, "")
         self.stageNum=0
@@ -454,6 +458,7 @@ class DormScene(Scene):
         self.textIndexTup = [0,0] # typeWriter effect counter
         self.dormText = "> Welcome to your dorm. \n" \
                         "> Why not meet more people! \n" # typeWriter text
+        self.dormlist = [random.choice([0,1,2,3]) for i in range(11)] + [1]
 
     def timerFired(self):
         self.time += 1
@@ -467,31 +472,24 @@ class DormScene(Scene):
             dialogContent = '''Keep knocking on the next person's door until someone opens
 Try the script below and press Command + b to execute:\nwhile(the door is not opened):
     self.knockOnTheNextDoor()'''
-            explanationContent = '''Hello!!!!!!'''
+            explanationContent = '''While loop is used to keep doing something when you \ndo no know when you will stop'''
             self.refreshText(self.root.dialog, dialogContent)
             self.refreshText(self.root.explanation, explanationContent)
-            self.root.explanation.tag_add("blue", "1.0", "1.5")
-            self.root.explanation.tag_add("yellow", "1.6", "1.12")
             #   print(self.stageStatus)
             if self.root.content and self.stageStatus[self.stageNum] == False:
                 self.getScene1Content()
+        elif self.stageNum == 2:
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.dormText) - 1):
+                self.end = True
 
     def getScene1Content(self):
-        try:
-            eval(self.root.content)
-            if (self.root.content.strip().startswith('print("') and
-                self.root.content.strip().endswith('")')):
-                self.scene1Content = self.root.content.strip()[7:-2]
-                self.stageStatus[self.stageNum] = True
-                self.root.editor.config(state="disabled")
-               # print(self.root.editor.cget("state"))
-        except:
-            self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your"
-                                                                                          " code.")
-            self.root.explanation.tag_add("blue","1.0","1.5")
-            self.root.explanation.tag_add("yellow","1.6","1.12")
-            self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
-
+        if self.root.content:
+            self.root.content = self.root.content.strip()
+            if self.root.content.startswith("while") and self.root.content.endswith("knockOnTheNextDoor()"):
+                self.dormText = "You have found a student in room {}\n He suggests going to entropy.       ".format(self.dormlist.index(1))
+                self.root.content = ""
+                self.stageNum = 2
+                self.resetText()
 
     def resetText(self,width = -1,height = -1):
         self.textIndexTup = [0,self.time]
@@ -504,15 +502,15 @@ Try the script below and press Command + b to execute:\nwhile(the door is not op
 
     def redrawAll(self,canvas):
         self.root.canvas.create_image(0,0,image=self.myImage,anchor=NW)
-        if self.stageNum == 0:
+        if self.stageNum == 0 or self.stageNum == 2:
             if (self.dormText[self.textIndexTup[0]].isalpha()):
-                if (self.time - self.textIndexTup[1] > randint(3,4)):
+                if (self.time - self.textIndexTup[1] > randint(1,2)):
                     self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.dormText) - 1)
                     self.textIndexTup[1] = self.time
                 else:
                     pass
             else:
-                if (self.time - self.textIndexTup[1] > randint(4,6)):
+                if (self.time - self.textIndexTup[1] > randint(3,4)):
                     self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.dormText) - 1)
                     self.textIndexTup[1] = self.time
                 else:
