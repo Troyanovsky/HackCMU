@@ -23,6 +23,8 @@ class Main(object):
         #global func
         self.root.bind("<Command-b>", lambda event:
                                 self.getUserInput())
+        self.root.bind("<Control-b>",lambda event:
+                                self.getUserInput())
         recolorizeAll(self.root.editor,self.root)
         # updateLineNumber(root)
         # root.words = reservedWords()
@@ -113,6 +115,7 @@ class Main(object):
 # Scene class parent that dispatch the actual drawing and interaction with text widgets
 class Scene(object):
     def __init__(self,root):
+        self.totalStage = 2
         self.root = root
         self.end = False
 
@@ -120,7 +123,7 @@ class Scene(object):
         # will be update when a stage is finished
         # need to be checked by text interactive widget to decide phase
         self.stageNum = 0
-        self.stageNext = False
+        self.stageStatus = [False] * self.totalStage
         self.root.update_idletasks()
         self.width, self.height = (self.root.canvas.winfo_width(), self.root.canvas.winfo_height())
     def isEnd(self):
@@ -156,6 +159,10 @@ class WelcomeScreen(Scene):
         self.welcomeText = "> Hi There, Welcome to CMU\n" # typeWriter text
     def resetText(self,width = -1,height = -1):
         self.textIndexTup = [0,self.time]
+        if(width == -1):
+            width = self.textWidth
+        if height == -1:
+            height = self.textHeight
         self.textWidth = width
         self.textHeight = height
     def mousePressed(self,event):
@@ -200,20 +207,23 @@ class WelcomeScreen(Scene):
         pass
     def timerFired(self):
         self.time+=1
-        if not self.stageNext and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
-            self.stageNum += 1
-            self.stageNext = True
-        if self.stageNum == 1:
-            self.root.editor.config(state="normal")
-            dialogContent = '''You can try to type the following script on the right and press Command + b:
-print("Hello")'''
-            explanationContent = '''print(String) is a function.
+        if self.stageNum == 0:
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage-1)
+                self.resetText()
+                self.root.editor.config(state="normal")
+        elif self.stageNum == 1:
+            dialogContent = '''Hi, let's make a call! Use print() fuction to yell something!
+Try the script below and press Command + b to execute:\nprint("Hello")'''
+            explanationContent = '''print(String) is a function which take in a String type .
 You can try to replace the "Hello" with other things'''
             self.refreshText(self.root.dialog,dialogContent)
             self.refreshText(self.root.explanation,explanationContent)
             self.root.explanation.tag_add("blue","1.0","1.5")
             self.root.explanation.tag_add("yellow","1.6","1.12")
-            if self.root.content:
+            print(self.stageStatus)
+            if self.root.content and self.stageStatus[self.stageNum] == False:
                 self.getScene1Content()
 
     def getScene1Content(self):
@@ -222,10 +232,9 @@ You can try to replace the "Hello" with other things'''
             if (self.root.content.strip().startswith('print("') and 
                 self.root.content.strip().endswith('")')):
                 self.scene1Content = self.root.content.strip()[7:-2]
-            else:
-                self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nPlease use the given function.")
-                self.root.explanation.tag_add("blue","1.0","1.5")
-                self.root.explanation.tag_add("yellow","1.6","1.12")
+                self.stageStatus[self.stageNum] = True
+                self.root.editor.config(state="disabled")
+                print(self.root.editor.cget("state"))
         except:
             self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your code.")
             self.root.explanation.tag_add("blue","1.0","1.5")
@@ -238,22 +247,24 @@ You can try to replace the "Hello" with other things'''
         #draw back ground
         canvas.create_rectangle(0,0,self.width,self.height,fill='black', width = 0)
         #draw <<
-
-        if (self.welcomeText[self.textIndexTup[0]].isalpha()):
-            if (self.time - self.textIndexTup[1] > randint(3,4)):
-                self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
-                self.textIndexTup[1] = self.time
+        if self.stageNum == 0:
+            if (self.welcomeText[self.textIndexTup[0]].isalpha()):
+                if (self.time - self.textIndexTup[1] > randint(3,4)):
+                    self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
+                    self.textIndexTup[1] = self.time
+                else:
+                    pass
             else:
-                pass
-        else:
-            if (self.time - self.textIndexTup[1] > randint(4,6)):
-                self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
-                self.textIndexTup[1] = self.time
-            else:
-                pass
-        textIndex = self.textIndexTup[0]
-        printedText = self.welcomeText[0:textIndex]
-        canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
+                if (self.time - self.textIndexTup[1] > randint(4,6)):
+                    self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
+                    self.textIndexTup[1] = self.time
+                else:
+                    pass
+            textIndex = self.textIndexTup[0]
+            printedText = self.welcomeText[0:textIndex]
+            canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
+        elif self.stageNum == 1:
+            canvas.create_text(self.textWidth, self.textHeight, text=self.welcomeText, font="Calibri 25", fill="white")
 
 class MapScene(Scene):
     pass
