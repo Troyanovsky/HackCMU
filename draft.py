@@ -221,7 +221,10 @@ You can try to replace the "Hello" with other things'''
             if (self.root.content.strip().startswith('print("') and 
                 self.root.content.strip().endswith('")')):
                 self.scene1Content = self.root.content.strip()[7:-2]
-                print(self.scene1Content)
+            else:
+                self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nPlease use the given function.")
+                self.root.explanation.tag_add("blue","1.0","1.5")
+                self.root.explanation.tag_add("yellow","1.6","1.12")
         except:
             self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!!")
             self.root.explanation.tag_add("blue","1.0","1.5")
