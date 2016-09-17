@@ -4,9 +4,9 @@ import copy
 from random import randint
 from lib import *
 
-class Animation(object):
+# Main class runs the whole game and manges transformations between stages.
+class Main(object):
     # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
-    # parent class of event based animation objects.
     def run(self, width=600, height=700):
         def redrawAllWrapper(canvas):
             canvas.delete(ALL)
@@ -55,6 +55,7 @@ class Animation(object):
         self.width,self.height = (root.canvas.winfo_width(),root.canvas.winfo_height())
         #TODO
         print("Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
+        self.root = root
         root.mainloop()  # blocks until window is closed
         print("bye!")
 
@@ -83,27 +84,43 @@ class Animation(object):
     def timerFired(self):
         pass
     def init(self):
-        pass
+        self.mode = WelcomeScreen(self.root)
 
-class WelcomeScreen(Animation):
-    def __inti__(self):
-        self.init()
+# Scene class parent that dispatch the actual drawing and interaction with text widgets
+class Scene(object):
+    def __inti__(self,root,width,height):
+        self.init(root,width,height)
+    def redrawAll(self,canvas):
+        pass
+    def mousePressed(self,canvas):
+        pass
+    def keyPressed(self,canvas):
+        pass
+    def timerFired(self):
+        pass
+    def init(self):
+        pass
+class WelcomeScreen(Scene):
+    def __inti__(self,root,width,height):
+        self.init(root,width,height)
     def isEnd(self):
         return self.end
-    def init(self):
+    def init(self,root,width,height):
+        self.root = root
         self.end = False
 
         # text editor stage number
         # will be update when a stage is finished
         # meed to be checked by text interactive widget to decide phase
         self.stageNum = 0
+        self.stageNext = False
 
         self.time = 0 # timer
         self.textWidth = self.width / 2
         self.textHeight = self.height / 2
         self.textIndexTup = [0,0] # typeWriter effect counter
         self.welcomeText = "> Hi There, Welcome to CMU\n" # typeWriter text
-    def resetText(self,width,height):
+    def resetText(self,width = -1,height = -1):
         self.textIndexTup = [0,self.time]
         self.textWidth = width
         self.textHeight = height
@@ -149,8 +166,9 @@ class WelcomeScreen(Animation):
         pass
     def timerFired(self):
         self.time+=1
-        if self.textIndexTup[0] >= self.welcomeText.__len__():
+        if not self.stageNext and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
             self.stageNum += 1
+            self.stageNext = True
         pass
     def redrawAll(self,canvas):
         #draw in canvas
