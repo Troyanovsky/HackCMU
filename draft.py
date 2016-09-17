@@ -3,6 +3,7 @@ from tkinter import ttk
 import copy
 from random import randint
 from lib import *
+import random
 
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
@@ -110,7 +111,9 @@ class Main(object):
         elif (self.sceneNum == 1):
             self.mode = MapScene(self.root)
         elif (self.sceneNum == 2):
-            self.node = DormScene(self.root)
+            # self.node = DormScene(self.root)
+            self.mode = EntropyScene(self.root)
+
     def cacheScene(self):
         self.sceneCache = self.mode
     def loadScene(self):
@@ -398,6 +401,7 @@ You can try to replace the "Hello" with other things'''
             canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
         elif self.stageNum == 1 or self.stageNum == 4 or self.stageNum == 7:
             canvas.create_text(self.textWidth, self.textHeight, text=self.welcomeText, font="Calibri 25", fill="white")
+
 class MapScene(Scene):
     def __init__(self,root):
         super().__init__(root)
@@ -511,6 +515,61 @@ me.moveDown()'''
         else:
             return False
 
+class EntropyScene(Scene):
+    def __init__(self,root):
+        super().__init__(root)
+        self.init(root)
+
+    def init(self,root):
+        self.entropybg = PhotoImage(file = "entropy.gif")
+        self.root.editor.configure(state="normal")
+        self.root.editor.delete('1.0', 'end')
+        self.root.content = ""
+        self.stageNum = 0
+        self.dialogContent = '''Your friend asked you to buy him a gluten free bread, you need to see the back of the package to see if it
+is halal. You can either see the bags one by one by using:
+bread1.see()
+bread2.see()
+bread3.see()
+or you can use a loop like:
+
+for bread in shelf:
+    bread.see()'''
+        self.explanationContent = '''Available Commands:
+bread.see()
+for loop'''
+        self.refreshText(self.root.dialog,self.dialogContent)
+        self.refreshText(self.root.explanation,self.explanationContent)
+        self.shelf = [random.choice([0,1,2]) for i in range(14)]
+        print(self.shelf)
+        self.result = ""
+
+    def redrawAll(self,canvas):
+        canvas.create_image(0,0,anchor = NW,image=self.entropybg)
+        if self.result:
+            canvas.create_text(self.width//2,self.height//2,anchor=CENTER,text="{}".format(self.result),font = "Times 50",fill = "blue")
+
+    def timerFired(self):
+        if self.stageNum == 0:
+            if self.root.content:
+                for line in self.root.content.splitlines():
+                    if line.endswith(".see()") and line.startswith("bread"):
+                        try:
+                            if self.shelf[int(line[5])] == 1:
+                                self.root.editor.configure(state = "disabled")
+                                self.result = "Yes you found it!"
+                                self.stageNum = 1
+                            else:
+                                self.result = "No it is not gluten free."
+                        except:
+                            pass
+                if self.root.content.startswith("for bread in shelf"):
+                    for i in range(len(self.shelf)):
+                        if self.shelf[i] == 1:
+                            self.result = "You find that bread {0} is gluten free".format(i)
+                            self.stageNum = 1
+                            return None
+                    self.result = "No bread is gluten free :("
 
 main = Main(600,700)
 main.run()
