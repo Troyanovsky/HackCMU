@@ -87,10 +87,10 @@ class Main(object):
 
     def redrawAll(self,canvas):
         self.mode.redrawAll(canvas)
-    def mousePressed(self,canvas):
-        self.mode.mousePressed(canvas)
-    def keyPressed(self,canvas):
-        self.mode.keyPressed(canvas)
+    def mousePressed(self,event):
+        self.mode.mousePressed(event)
+    def keyPressed(self,event):
+        self.mode.keyPressed(event)
     def timerFired(self):
         self.mode.timerFired()
         if self.mode.isEnd():
@@ -114,24 +114,17 @@ class Main(object):
 # Scene class parent that dispatch the actual drawing and interaction with text widgets
 class Scene(object):
     def __init__(self,root):
-        self.totalStage = 2
         self.root = root
         self.end = False
-
-        # text editor stage number
-        # will be update when a stage is finished
-        # need to be checked by text interactive widget to decide phase
-        self.stageNum = 0
-        self.stageStatus = [False] * self.totalStage
         self.root.update_idletasks()
         self.width, self.height = (self.root.canvas.winfo_width(), self.root.canvas.winfo_height())
     def isEnd(self):
             return self.end
     def redrawAll(self,canvas):
         pass
-    def mousePressed(self,canvas):
+    def mousePressed(self,event):
         pass
-    def keyPressed(self,canvas):
+    def keyPressed(self,event):
         pass
     def timerFired(self):
         pass
@@ -150,6 +143,13 @@ class WelcomeScreen(Scene):
         super().__init__(root)
         self.init(root)
     def init(self,root):
+        # text editor stage number
+        # will be update when a stage is finished
+        # need to be checked by text interactive widget to decide phase
+        self.stageNum = 0
+        self.totalStage = 3.
+
+        self.stageStatus = [False] * self.totalStage
         print("WLC SCR Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
         self.time = 0 # timer
         self.textWidth = self.width / 2
