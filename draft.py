@@ -3,6 +3,7 @@ from tkinter import ttk
 import copy
 from random import randint
 from lib import *
+import re
 
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
@@ -77,7 +78,9 @@ class Main(object):
                                 borderwidth=0, highlightthickness=0, undo=True,
                                 insertbackground="black",state="disabled")
         root.explanation.grid(row=1, column=1, sticky="S")
-
+        root.explanation.tag_configure("yellow",foreground = "#d7cc6c")
+        root.explanation.tag_configure("blue",foreground = "#64d6eb")
+        root.explanation.tag_configure("green",foreground = "green2")
 
     def redrawAll(self,canvas):
         self.mode.redrawAll(canvas)
@@ -203,11 +206,22 @@ class WelcomeScreen(Scene):
             dialogContent = '''You can try to type the following script on the right and press Command + b:
 print("Hello")'''
             explanationContent = '''print(String) is a function.
-You can try to replace the "Hello" with other thing'''
+You can try to replace the "Hello" with other things'''
             self.refreshText(self.root.dialog,dialogContent)
             self.refreshText(self.root.explanation,explanationContent)
-            print(self.root.content)
+            self.root.explanation.tag_add("blue","1.0","1.5")
+            self.root.explanation.tag_add("yellow","1.6","1.12")
+            if self.root.content:
+                self.getScene1Content()
 
+    def getScene1Content(self):
+        try:
+            eval(self.root.content)
+            if (self.root.content.strip().startswith('print("') and 
+                self.root.content.strip().endswith('")')):
+                self.scene1Content = self.root.content.strip()[7:-2]
+        except:
+            self.refreshText(self.root.explanation,explanationContent+"\nError!!")
 
     def redrawAll(self,canvas):
         #draw in canvas
