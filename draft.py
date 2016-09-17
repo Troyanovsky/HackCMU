@@ -69,7 +69,7 @@ class Main(object):
         root.canvas = Canvas(root, background="black", height=self.width, width=self.height)
         root.dialog = Text(root, background="gray13", foreground='white', wrap="none",
                            borderwidth=0, highlightthickness=0, undo=True,
-                           insertbackground="white",state="disabled",font="Arial")
+                           insertbackground="white",state="disabled")
         root.canvas.grid(row=0, column=0)
         root.dialog.grid(row=1, column=0, sticky="WE")
         root.editor = Text(root, background="gray13", foreground='white', wrap="none",
@@ -80,7 +80,7 @@ class Main(object):
                                 borderwidth=0, highlightthickness=0, undo=True,
                                 insertbackground="black",state="disabled")
         root.explanation.grid(row=1, column=1, sticky="S")
-        root.explanation.tag_configure("yellow",foreground = "#d7cc6c")
+        root.explanation.tag_configure("yellow",foreground = "#ff4500")
         root.explanation.tag_configure("blue",foreground = "#64d6eb")
         root.explanation.tag_configure("green",foreground = "green2")
         root.explanation.tag_configure("red",foreground = "red")
@@ -148,15 +148,14 @@ class WelcomeScreen(Scene):
         # will be update when a stage is finished
         # need to be checked by text interactive widget to decide phase
         self.stageNum = 0
-        self.totalStage = 3.
-
+        self.totalStage = 9
         self.stageStatus = [False] * self.totalStage
         print("WLC SCR Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
         self.time = 0 # timer
         self.textWidth = self.width / 2
         self.textHeight = self.height / 2
         self.textIndexTup = [0,0] # typeWriter effect counter
-        self.welcomeText = "> Hi There, Welcome to CMU\n" # typeWriter text
+        self.welcomeText = "> Hi There, \n> Welcome to CMU" # typeWriter text
     def resetText(self,width = -1,height = -1):
         self.textIndexTup = [0,self.time]
         if(width == -1):
@@ -169,41 +168,6 @@ class WelcomeScreen(Scene):
         # use event.x and event.y
         pass
     def keyPressed(self,event):
-        # # use event.char and event.keysym
-        # if not self.end:
-        #     if event.keysym == "Left" and data.player.x > 5:
-        #         data.player.movex(True)
-        #     elif event.keysym == 'Right'and data.player.x < data.width -5:
-        #         data.player.movex(False)
-        #     elif event.keysym == "space" and data.fireTime >= 20:
-        #         if data.score < 1000:
-        #             data.missile.append(Missile(data.player.getPos(),-10))
-        #         elif data.score < 2500:
-        #             Missile.sizex = 2
-        #             data.missile.append(Missile(
-        #                 (data.player.getPos()[0]-3,data.player.getPos()[1])
-        #                  ,-10,"yellow"))
-        #             data.missile.append(Missile(
-        #                 (data.player.getPos()[0]+3,data.player.getPos()[1])
-        #                 ,-10,"yellow"))
-        #         elif data.score< 3000:
-        #             Missile.sizex = 2
-        #             data.missile.append(Missile(
-        #                 (data.player.getPos()[0]-5,data.player.getPos()[1])
-        #                  ,-10,'blue'))
-        #             data.missile.append(Missile(
-        #                 (data.player.getPos()[0],data.player.getPos()[1])
-        #                  ,-10,'blue'))
-        #             data.missile.append(Missile(
-        #                 (data.player.getPos()[0]+5,data.player.getPos()[1])
-        #                 ,-10,'blue'))
-        #         else:
-        #             for i in range (5):
-        #                 data.missile.append(Missile(
-        #                     (data.player.getPos()[0] - 7.5 + 5*i,
-        #                         350 - 20*sin(3.1415926/5*i))
-        #                      ,-10,'blue'))
-        #         data.fireTime = 0
         pass
     def timerFired(self):
         self.time+=1
@@ -211,10 +175,9 @@ class WelcomeScreen(Scene):
             if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
                 self.stageStatus[self.stageNum] = True
                 self.stageNum = min(self.stageNum + 1, self.totalStage-1)
-                self.resetText()
                 self.root.editor.config(state="normal")
         elif self.stageNum == 1:
-            dialogContent = '''Hi, let's make a call! Use print() fuction to yell something!
+            dialogContent = '''Hi, let's make a call! Use print() function to yell something!
 Try the script below and press Command + b to execute:\nprint("Hello")'''
             explanationContent = '''print(String) is a function which take in a String type .
 You can try to replace the "Hello" with other things'''
@@ -222,32 +185,105 @@ You can try to replace the "Hello" with other things'''
             self.refreshText(self.root.explanation,explanationContent)
             self.root.explanation.tag_add("blue","1.0","1.5")
             self.root.explanation.tag_add("yellow","1.6","1.12")
-            print(self.stageStatus)
             if self.root.content and self.stageStatus[self.stageNum] == False:
-                self.getScene1Content()
+                if (self.getScene1Content()): # move forward
+                    self.stageStatus[self.stageNum] = True
+                    self.stageNum += 1
+                    self.welcomeText =  self.welcomeText +"\n" + "> Me: " + self.scene1Content
+        elif self.stageNum == 2: # restart typewriter prints
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage-1)
+                self.welcomeText = (self.welcomeText + "\n" +
+                                    "> How many pieces of luggage do you have?")
+        elif self.stageNum == 3: # restart typewriter prints
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage-1)
+                self.root.editor.config(state="normal")
+                self.root.editor.delete("1.0", "end")
 
+        elif self.stageNum == 4:
+            dialogContent = '''Type in number of luggage you have using statement\n\t\tluggage = int\n\tPress Command + b to execute:\n'''
+            explanationContent = '''var = int\n will give value of int to variable var'''
+            self.refreshText(self.root.dialog, dialogContent)
+            self.refreshText(self.root.explanation, explanationContent)
+            self.root.explanation.tag_add("red", "1.4", "1.5")
+            self.root.explanation.tag_add("orange", "1.6", "1.9")
+            if self.root.content and self.stageStatus[self.stageNum] == False:
+                if (self.getScene1Content()): # move forward
+                    self.stageStatus[self.stageNum] = True
+                    self.stageNum += 1
+                    # print("+1")
+                    self.welcomeText =  self.welcomeText +"\n" + "> Me: I have " + str(self.scene1Content.split(" ")[-1]) + "."
+
+        elif self.stageNum == 5:
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage-1)
+                self.welcomeText = (self.welcomeText + "\n" +
+                                    "> Let's go to dorm?")
+        elif self.stageNum == 6:
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage - 1)
+                self.root.editor.config(state="normal")
+                self.root.editor.delete("1.0", "end")
+
+        elif self.stageNum == 7:
+            dialogContent = '''Type in boolean value True or False\n\tPress Command + b to execute:\n'''
+            explanationContent = '''True or False are the boolean values in python'''
+            self.refreshText(self.root.dialog, dialogContent)
+            self.refreshText(self.root.explanation, explanationContent)
+            self.root.explanation.tag_add("red", "1.4", "1.5")
+            self.root.explanation.tag_add("orange", "1.6", "1.9")
+            if self.root.content and self.stageStatus[self.stageNum] == False:
+                if (self.getScene1Content()): # move forward
+                    self.stageStatus[self.stageNum] = True
+                    self.stageNum += 1
+                    self.welcomeText =  self.welcomeText +"\n" + "> Me: Okay"
+        elif self.stageNum == 8:
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage - 1)
+                self.end = True
     def getScene1Content(self):
         try:
-            eval(self.root.content)
-            if (self.root.content.strip().startswith('print("') and 
-                self.root.content.strip().endswith('")')):
-                self.scene1Content = self.root.content.strip()[7:-2]
-                self.stageStatus[self.stageNum] = True
-                self.root.editor.config(state="disabled")
-                print(self.root.editor.cget("state"))
+            if self.stageNum == 1:
+                eval(self.root.content)
+                if (self.root.content.strip().startswith('print("') and
+                    self.root.content.strip().endswith('")')):
+                    self.scene1Content = self.root.content.strip()[7:-2]
+                    self.root.editor.config(state="disabled")
+                    return True
+            elif self.stageNum == 4:
+                # print("in 4: " + self.root.content.strip().split(" ")[-1])
+                self.scene1Content = self.root.content.strip()
+                if (self.root.content.strip().startswith("luggage") and
+                        self.root.content.strip().split(" ")[-1].isdecimal()):
+                    return True
+                else:
+                    return False
+            elif self.stageNum == 7:
+                self.scene1Content = self.root.content.strip()
+                if (self.root.content.strip() == "True" or self.root.content.strip() == "False"):
+                    return True
+                else:
+                    return False
+            print("undefined num case")
         except:
             self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your code.")
             self.root.explanation.tag_add("blue","1.0","1.5")
             self.root.explanation.tag_add("yellow","1.6","1.12")
             self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
-
+            return False
 
     def redrawAll(self,canvas):
         #draw in canvas
         #draw back ground
         canvas.create_rectangle(0,0,self.width,self.height,fill='black', width = 0)
         #draw <<
-        if self.stageNum == 0:
+        if self.stageNum == 0 or self.stageNum == 2 or self.stageNum == 3 or self.stageNum == 5 or self.stageNum == 6 or self.stageNum == 8:
             if (self.welcomeText[self.textIndexTup[0]].isalpha()):
                 if (self.time - self.textIndexTup[1] > randint(3,4)):
                     self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
@@ -260,12 +296,11 @@ You can try to replace the "Hello" with other things'''
                     self.textIndexTup[1] = self.time
                 else:
                     pass
-            textIndex = self.textIndexTup[0]
+            textIndex = self.textIndexTup[0]+1
             printedText = self.welcomeText[0:textIndex]
             canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
-        elif self.stageNum == 1:
+        elif self.stageNum == 1 or self.stageNum == 4 or self.stageNum == 7:
             canvas.create_text(self.textWidth, self.textHeight, text=self.welcomeText, font="Calibri 25", fill="white")
-
 class MapScene(Scene):
     pass
 main = Main(600,700)
