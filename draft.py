@@ -67,7 +67,7 @@ class Main(object):
         root.canvas = Canvas(root, background="black", height=self.width, width=self.height)
         root.dialog = Text(root, background="gray13", foreground='white', wrap="none",
                            borderwidth=0, highlightthickness=0, undo=True,
-                           insertbackground="white",state="disabled")
+                           insertbackground="white",state="disabled",font="Arial")
         root.canvas.grid(row=0, column=0)
         root.dialog.grid(row=1, column=0, sticky="WE")
         root.editor = Text(root, background="gray13", foreground='white', wrap="none",
@@ -82,6 +82,7 @@ class Main(object):
         root.explanation.tag_configure("blue",foreground = "#64d6eb")
         root.explanation.tag_configure("green",foreground = "green2")
         root.explanation.tag_configure("red",foreground = "red")
+        root.explanation.tag_configure("error",foreground = "red",underline=1,background="yellow")
 
     def redrawAll(self,canvas):
         self.mode.redrawAll(canvas)
@@ -226,10 +227,10 @@ You can try to replace the "Hello" with other things'''
                 self.root.explanation.tag_add("blue","1.0","1.5")
                 self.root.explanation.tag_add("yellow","1.6","1.12")
         except:
-            self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!!")
+            self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your code.")
             self.root.explanation.tag_add("blue","1.0","1.5")
             self.root.explanation.tag_add("yellow","1.6","1.12")
-            self.root.explanation.tag_add("red","end -8c","end")
+            self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
 
 
     def redrawAll(self,canvas):
