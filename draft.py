@@ -340,16 +340,16 @@ me.moveDown()'''
         self.location = [0,0]
         self.headImg = PhotoImage(file = "head.gif")
         self.locations = [[[None,None]] * 3 for i in range(3)]
-        self.locations[0][0] = (328,88)
-        self.locations[1][0] = (335,321)
-        self.locations[2][0] = (334,499)
-        self.locations[1][1] = (430,322)
-        self.locations[1][2] = (602,322)
-        self.locations[2][1] = (522,492)
-        self.locations[2][2] = (644,503)
+        self.locations[0][0] = (230,63)
+        self.locations[1][0] = (225,242)
+        self.locations[2][0] = (215,360)
+        self.locations[1][1] = (366,245)
+        self.locations[1][2] = (603,261)
+        self.locations[2][1] = (477,363)
+        self.locations[2][2] = (611,365)
 
     def mousePressed(self,event):
-        pass
+        print(event.x,event.y)
 
     def timerFired(self):
         if self.stageNum == 1:
