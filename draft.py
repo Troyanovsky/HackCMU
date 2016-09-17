@@ -8,7 +8,7 @@ import random
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
     def __init__(self,width,height):
-        # self.sceneNum = 0
+        self.maxsceneNum = 3
         self.sceneNum = 0
         self.width = width
         self.height = height
@@ -92,17 +92,17 @@ class Main(object):
     def mousePressed(self,event):
         self.mode.mousePressed(event)
     def keyPressed(self,event):
-        self.mode=DormScene(self.root)
-       # self.mode.keyPressed(event)
+        self.mode.keyPressed(event)
     def timerFired(self):
         self.mode.timerFired()
         if self.mode.isEnd():
-            self.sceneNum +=1
-            if type(self.mode) == MapScene :
-                self.cacheScene()
-                self.buildScene()
-            else:
-                self.loadScene()
+            self.sceneNum = min(self.sceneNum + 1, self.maxsceneNum - 1)
+            self.buildScene()
+            # if type(self.mode) == MapScene :
+            #     self.cacheScene()
+            #     self.buildScene()
+            # else:
+            #     self.loadScene()
     def init(self):
         self.buildScene()
     def buildScene(self):
@@ -111,6 +111,7 @@ class Main(object):
         elif (self.sceneNum == 1):
             self.mode = MapScene(self.root)
         elif (self.sceneNum == 2):
+            # self.node = DormScene(self.root)
             self.mode = EntropyScene(self.root)
 
     def cacheScene(self):
@@ -237,7 +238,6 @@ Try the script below and press Command + b to execute:\nwhile(the door is not op
             canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
         elif self.stageNum == 1:
             canvas.create_text(self.textWidth, self.textHeight, text=self.dormText, font="Calibri 25", fill="white")
-
 class WelcomeScreen(Scene):
     def __init__(self,root):
         super().__init__(root)
@@ -340,7 +340,7 @@ You can try to replace the "Hello" with other things'''
                 if (self.getScene1Content()): # move forward
                     self.stageStatus[self.stageNum] = True
                     self.stageNum += 1
-                    self.welcomeText =  self.welcomeText +"\n" + "> Me: Okay"
+                    self.welcomeText =  self.welcomeText +"\n" + "> Me: Okay            "
         elif self.stageNum == 8:
             if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
                 self.stageStatus[self.stageNum] = True
@@ -427,18 +427,20 @@ me.moveDown()'''
         self.location = [0,0]
         self.headImg = PhotoImage(file = "head.gif")
         self.locations = [[[None,None]] * 3 for i in range(3)]
-        self.locations[0][0] = (328,88)
-        self.locations[1][0] = (335,321)
-        self.locations[2][0] = (334,499)
-        self.locations[1][1] = (430,322)
-        self.locations[1][2] = (602,322)
-        self.locations[2][1] = (522,492)
-        self.locations[2][2] = (644,503)
+        self.locations[0][0] = (230,63)
+        self.locations[1][0] = (225,242)
+        self.locations[2][0] = (215,360)
+        self.locations[1][1] = (366,245)
+        self.locations[1][2] = (603,261)
+        self.locations[2][1] = (477,363)
+        self.locations[2][2] = (611,365)
 
     def mousePressed(self,event):
-        pass
+        print(event.x,event.y)
 
     def timerFired(self):
+        if self.stageNum == 1:
+            self.end = True
         if self.stageNum != 1:
             if self.root.content:
                 self.commands = list(self.root.content.splitlines())
