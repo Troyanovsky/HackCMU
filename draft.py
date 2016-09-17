@@ -9,7 +9,7 @@ import random
 class Main(object):
     def __init__(self,width,height):
         # self.sceneNum = 0
-        self.sceneNum = 2
+        self.sceneNum = 0
         self.width = width
         self.height = height
         self.timerDelay = 10
