@@ -6,7 +6,7 @@ from lib import *
 
 class Animation(object):
     # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
-    ####################################
+    # parent class of event based animation objects.
     def run(self, width=600, height=700):
         def redrawAllWrapper(canvas):
             canvas.delete(ALL)
@@ -48,10 +48,12 @@ class Animation(object):
         root.bind("<Key>", lambda event:
                                 keyPressedWrapper(event, root.canvas))
         timerFiredWrapper(root.canvas)
+
         # and launch the app
         root.update_idletasks()
         # get actual width
         self.width,self.height = (root.canvas.winfo_width(),root.canvas.winfo_height())
+        #TODO
         print("Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
         root.mainloop()  # blocks until window is closed
         print("bye!")
@@ -147,7 +149,7 @@ class WelcomeScreen(Animation):
         pass
     def timerFired(self):
         self.time+=1
-        if self.textIndexTup[0] >= self.textIndexTup:
+        if self.textIndexTup[0] >= self.welcomeText.__len__():
             self.stageNum += 1
         pass
     def redrawAll(self,canvas):

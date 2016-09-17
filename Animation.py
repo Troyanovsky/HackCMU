@@ -4,7 +4,7 @@ from tkinter import *
 
 class Animation(object):
     # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
-    ####################################
+    # parent class of event based animation objects.
     def run(self, width=1026, height=768):
         def redrawAllWrapper(canvas):
             canvas.delete(ALL)
