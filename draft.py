@@ -90,9 +90,21 @@ class WelcomeScreen(Animation):
         return self.end
     def init(self):
         self.end = False
-        self.time = 0
-        self.textIndexTup = [0,0]
-        self.welcomeText = "> Hi There, Welcome to CMU\n"
+
+        # text editor stage number
+        # will be update when a stage is finished
+        # meed to be checked by text interactive widget to decide phase
+        self.stageNum = 0
+
+        self.time = 0 # timer
+        self.textWidth = self.width / 2
+        self.textHeight = self.height / 2
+        self.textIndexTup = [0,0] # typeWriter effect counter
+        self.welcomeText = "> Hi There, Welcome to CMU\n" # typeWriter text
+    def resetText(self,width,height):
+        self.textIndexTup = [0,self.time]
+        self.textWidth = width
+        self.textHeight = height
     def mousePressed(self,event):
         # use event.x and event.y
         pass
@@ -135,6 +147,8 @@ class WelcomeScreen(Animation):
         pass
     def timerFired(self):
         self.time+=1
+        if self.textIndexTup[0] >= self.textIndexTup:
+            self.stageNum += 1
         pass
     def redrawAll(self,canvas):
         #draw in canvas
@@ -156,7 +170,7 @@ class WelcomeScreen(Animation):
                 pass
         textIndex = self.textIndexTup[0]
         printedText = self.welcomeText[0:textIndex]
-        canvas.create_text(self.width/2,self.height/2,text=printedText,font = "Calibri 25", fill = "white")
+        canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
 
 scene1 = WelcomeScreen()
 scene1.run(600,700)
