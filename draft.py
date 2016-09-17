@@ -7,7 +7,7 @@ from lib import *
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
     def __init__(self,width,height):
-        # self.sceneNum = 0
+        self.maxsceneNum = 3
         self.sceneNum = 0
         self.width = width
         self.height = height
@@ -78,7 +78,7 @@ class Main(object):
         root.editor.grid(row=0, column=1, sticky="NS")
         root.explanation = Text(root, background="bisque2", foreground='black', wrap="none",
                                 borderwidth=0, highlightthickness=0, undo=True,
-                                insertbackground="black",state="disabled",font="40")
+                                insertbackground="black",state="disabled")
         root.explanation.grid(row=1, column=1, sticky="S")
         root.explanation.tag_configure("yellow",foreground = "#ff4500")
         root.explanation.tag_configure("blue",foreground = "#64d6eb")
@@ -91,12 +91,11 @@ class Main(object):
     def mousePressed(self,event):
         self.mode.mousePressed(event)
     def keyPressed(self,event):
-        self.mode=DormScene(self.root)
-       # self.mode.keyPressed(event)
+        self.mode.keyPressed(event)
     def timerFired(self):
         self.mode.timerFired()
         if self.mode.isEnd():
-            self.sceneNum +=1
+            self.sceneNum = min(self.sceneNum + 1, self.maxsceneNum - 1)
             self.buildScene()
             # if type(self.mode) == MapScene :
             #     self.cacheScene()
@@ -110,7 +109,8 @@ class Main(object):
             self.mode = WelcomeScreen(self.root)
         elif (self.sceneNum == 1):
             self.mode = MapScene(self.root)
-
+        elif (self.sceneNum == 2):
+            self.node = DormScene(self.root)
     def cacheScene(self):
         self.sceneCache = self.mode
     def loadScene(self):
@@ -235,7 +235,6 @@ Try the script below and press Command + b to execute:\nwhile(the door is not op
             canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
         elif self.stageNum == 1:
             canvas.create_text(self.textWidth, self.textHeight, text=self.dormText, font="Calibri 25", fill="white")
-
 class WelcomeScreen(Scene):
     def __init__(self,root):
         super().__init__(root)
@@ -338,7 +337,7 @@ You can try to replace the "Hello" with other things'''
                 if (self.getScene1Content()): # move forward
                     self.stageStatus[self.stageNum] = True
                     self.stageNum += 1
-                    self.welcomeText =  self.welcomeText +"\n" + "> Me: Okay"
+                    self.welcomeText =  self.welcomeText +"\n" + "> Me: Okay            "
         elif self.stageNum == 8:
             if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
                 self.stageStatus[self.stageNum] = True
@@ -436,6 +435,8 @@ me.moveDown()'''
         pass
 
     def timerFired(self):
+        if self.stageNum == 1:
+            self.end = True
         if self.stageNum != 1:
             if self.root.content:
                 self.commands = list(self.root.content.splitlines())
