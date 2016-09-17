@@ -104,15 +104,20 @@ class Main(object):
             # else:
             #     self.loadScene()
     def init(self):
-        self.buildScene()
+        self.mode = DormScene(self.root)
+        # self.buildScene()
     def buildScene(self):
         if (self.sceneNum == 0):
+            self.root.content = ""
             self.mode = WelcomeScreen(self.root)
         elif (self.sceneNum == 1):
+            self.root.content = ""
             self.mode = MapScene(self.root)
         elif (self.sceneNum == 2):
+            self.root.content = ""
             # self.node = DormScene(self.root)
             self.mode = EntropyScene(self.root)
+
 
     def cacheScene(self):
         self.sceneCache = self.mode
@@ -143,101 +148,6 @@ class Scene(object):
         text.delete('1.0', 'end')
         text.insert('1.0', content)
         text.config(state="disabled")
-
-class DormScene(Scene):
-    def __init__(self,root):
-        super().__init__(root)
-        self.init(root)
-
-    def mousePressed(self,canvas):
-        pass
-
-    def keyPressed(self,canvas):
-        pass
-
-    def init(self,root):
-        self.refreshText(self.root.dialog, "")
-        self.refreshText(self.root.explanation, "")
-        self.stageNum=0
-        self.totalStage=3
-        self.time=0
-        self.myImage = PhotoImage(file='dormdoor.gif')
-        self.stageStatus = [False] * self.totalStage
-        print("WLC SCR Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
-        self.time = 0 # timer
-        self.textWidth = self.width / 2
-        self.textHeight = self.height / 2
-        self.textIndexTup = [0,0] # typeWriter effect counter
-        self.dormText = "> Welcome to your dorm. \n" \
-                        "> Why not meet more people! \n" # typeWriter text
-
-    def timerFired(self):
-        self.time += 1
-        if self.stageNum == 0:
-            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.dormText) - 1):
-                self.stageStatus[self.stageNum] = True
-                self.stageNum = min(self.stageNum + 1, self.totalStage - 1)
-                self.resetText()
-                self.root.editor.config(state="normal")
-        elif self.stageNum == 1:
-            dialogContent = '''Keep knocking on the next person's door until someone opens
-Try the script below and press Command + b to execute:\nwhile(the door is not opened):
-    self.knockOnTheNextDoor()'''
-            explanationContent = '''Hello!!!!!!'''
-            self.refreshText(self.root.dialog, dialogContent)
-            self.refreshText(self.root.explanation, explanationContent)
-            self.root.explanation.tag_add("blue", "1.0", "1.5")
-            self.root.explanation.tag_add("yellow", "1.6", "1.12")
-            #   print(self.stageStatus)
-            if self.root.content and self.stageStatus[self.stageNum] == False:
-                self.getScene1Content()
-
-    def getScene1Content(self):
-        try:
-            eval(self.root.content)
-            if (self.root.content.strip().startswith('print("') and
-                self.root.content.strip().endswith('")')):
-                self.scene1Content = self.root.content.strip()[7:-2]
-                self.stageStatus[self.stageNum] = True
-                self.root.editor.config(state="disabled")
-               # print(self.root.editor.cget("state"))
-        except:
-            self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your"
-                                                                                          " code.")
-            self.root.explanation.tag_add("blue","1.0","1.5")
-            self.root.explanation.tag_add("yellow","1.6","1.12")
-            self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
-
-
-    def resetText(self,width = -1,height = -1):
-        self.textIndexTup = [0,self.time]
-        if(width == -1):
-            width = self.textWidth
-        if height == -1:
-            height = self.textHeight
-        self.textWidth = width
-        self.textHeight = height
-
-    def redrawAll(self,canvas):
-        self.root.canvas.create_image(0,0,image=self.myImage,anchor=NW)
-        if self.stageNum == 0:
-            if (self.dormText[self.textIndexTup[0]].isalpha()):
-                if (self.time - self.textIndexTup[1] > randint(3,4)):
-                    self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.dormText) - 1)
-                    self.textIndexTup[1] = self.time
-                else:
-                    pass
-            else:
-                if (self.time - self.textIndexTup[1] > randint(4,6)):
-                    self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.dormText) - 1)
-                    self.textIndexTup[1] = self.time
-                else:
-                    pass
-            textIndex = self.textIndexTup[0]
-            printedText = self.dormText[0:textIndex]
-            canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
-        elif self.stageNum == 1:
-            canvas.create_text(self.textWidth, self.textHeight, text=self.dormText, font="Calibri 25", fill="white")
 
 class WelcomeScreen(Scene):
     def __init__(self,root):
@@ -359,9 +269,11 @@ You can try to replace the "Hello" with other things'''
             elif self.stageNum == 4:
                 # print("in 4: " + self.root.content.strip().split(" ")[-1])
                 self.scene1Content = self.root.content.strip()
-                if (self.root.content.strip().startswith("luggage") and
-                        self.root.content.strip().split(" ")[-1].isdecimal()):
-                    return True
+                if (self.root.content.strip().startswith("luggage")):
+                    if self.root.content.strip().split(" ")[-1].isdecimal():
+                        return True
+                    else:
+                        assert (False)
                 else:
                     return False
             elif self.stageNum == 7:
@@ -490,7 +402,7 @@ me.moveDown()'''
                         self.locations[row][col][0]+10,self.locations[row][col][1]+10,fill = "DodgerBlue2")
         canvas.create_image(self.locations[self.location[0]][self.location[1]][0],self.locations[self.location[0]][self.location[1]][1],anchor = CENTER,image=self.headImg)
         if self.stageNum == 1:
-            canvas.create_text(self.width//2,self.height//2,anchor=CENTER,text="You are back to Donner!",font = "Times 50",fill = "blue")
+            canvas.create_text(self.width*0.3,self.height*0.2,anchor=CENTER,text="Yah!! Donner!",font = "Calibri 30",fill = "blue")
 
     def isLegalMove(self,command):
         if command == "me.moveRight()":
@@ -515,6 +427,101 @@ me.moveDown()'''
                 return False
         else:
             return False
+
+class DormScene(Scene):
+    def __init__(self,root):
+        super().__init__(root)
+        self.init(root)
+
+    def mousePressed(self,canvas):
+        pass
+
+    def keyPressed(self,canvas):
+        pass
+
+    def init(self,root):
+        self.refreshText(self.root.dialog, "")
+        self.refreshText(self.root.explanation, "")
+        self.stageNum=0
+        self.totalStage=3
+        self.time=0
+        self.myImage = PhotoImage(file='dormdoor.gif')
+        self.stageStatus = [False] * self.totalStage
+        print("WLC SCR Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
+        self.time = 0 # timer
+        self.textWidth = self.width / 2
+        self.textHeight = self.height / 2
+        self.textIndexTup = [0,0] # typeWriter effect counter
+        self.dormText = "> Welcome to your dorm. \n" \
+                        "> Why not meet more people! \n" # typeWriter text
+
+    def timerFired(self):
+        self.time += 1
+        if self.stageNum == 0:
+            if not self.stageStatus[self.stageNum] and self.textIndexTup[0] >= (len(self.dormText) - 1):
+                self.stageStatus[self.stageNum] = True
+                self.stageNum = min(self.stageNum + 1, self.totalStage - 1)
+                self.resetText()
+                self.root.editor.config(state="normal")
+        elif self.stageNum == 1:
+            dialogContent = '''Keep knocking on the next person's door until someone opens
+Try the script below and press Command + b to execute:\nwhile(the door is not opened):
+    self.knockOnTheNextDoor()'''
+            explanationContent = '''Hello!!!!!!'''
+            self.refreshText(self.root.dialog, dialogContent)
+            self.refreshText(self.root.explanation, explanationContent)
+            self.root.explanation.tag_add("blue", "1.0", "1.5")
+            self.root.explanation.tag_add("yellow", "1.6", "1.12")
+            #   print(self.stageStatus)
+            if self.root.content and self.stageStatus[self.stageNum] == False:
+                self.getScene1Content()
+
+    def getScene1Content(self):
+        try:
+            eval(self.root.content)
+            if (self.root.content.strip().startswith('print("') and
+                self.root.content.strip().endswith('")')):
+                self.scene1Content = self.root.content.strip()[7:-2]
+                self.stageStatus[self.stageNum] = True
+                self.root.editor.config(state="disabled")
+               # print(self.root.editor.cget("state"))
+        except:
+            self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your"
+                                                                                          " code.")
+            self.root.explanation.tag_add("blue","1.0","1.5")
+            self.root.explanation.tag_add("yellow","1.6","1.12")
+            self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
+
+
+    def resetText(self,width = -1,height = -1):
+        self.textIndexTup = [0,self.time]
+        if(width == -1):
+            width = self.textWidth
+        if height == -1:
+            height = self.textHeight
+        self.textWidth = width
+        self.textHeight = height
+
+    def redrawAll(self,canvas):
+        self.root.canvas.create_image(0,0,image=self.myImage,anchor=NW)
+        if self.stageNum == 0:
+            if (self.dormText[self.textIndexTup[0]].isalpha()):
+                if (self.time - self.textIndexTup[1] > randint(3,4)):
+                    self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.dormText) - 1)
+                    self.textIndexTup[1] = self.time
+                else:
+                    pass
+            else:
+                if (self.time - self.textIndexTup[1] > randint(4,6)):
+                    self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.dormText) - 1)
+                    self.textIndexTup[1] = self.time
+                else:
+                    pass
+            textIndex = self.textIndexTup[0]
+            printedText = self.dormText[0:textIndex]
+            canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
+        elif self.stageNum == 1:
+            canvas.create_text(self.textWidth, self.textHeight, text=self.dormText, font="Calibri 25", fill="white")
 
 class EntropyScene(Scene):
     def __init__(self,root):
@@ -548,7 +555,7 @@ for loop'''
     def redrawAll(self,canvas):
         canvas.create_image(0,0,anchor = NW,image=self.entropybg)
         if self.result:
-            canvas.create_text(self.width//2,self.height//2,anchor=CENTER,text="{}".format(self.result),font = "Times 50",fill = "blue")
+            canvas.create_text(self.width*.3,self.height*.3,anchor=SW,text="{}".format(self.result),font = "Calibri 25",fill = rgbString(0,155,227))
 
     def timerFired(self):
         if self.stageNum == 0:
