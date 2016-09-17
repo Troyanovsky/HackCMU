@@ -3,12 +3,12 @@ from tkinter import ttk
 import copy
 from random import randint
 from lib import *
-import re
 
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
     def __init__(self,width,height):
-        self.sceneNum = 0
+        # self.sceneNum = 0
+        self.sceneNum = 1
         self.width = width
         self.height = height
         self.timerDelay = 10
@@ -107,7 +107,8 @@ class Main(object):
         if (self.sceneNum == 0):
             self.mode = WelcomeScreen(self.root)
         elif (self.sceneNum == 1):
-            self.mode = MapScene()
+            self.mode = MapScene(self.root)
+
     def cacheScene(self):
         self.sceneCache = self.mode
     def loadScene(self):
@@ -127,7 +128,7 @@ class Scene(object):
         self.root.update_idletasks()
         self.width, self.height = (self.root.canvas.winfo_width(), self.root.canvas.winfo_height())
     def isEnd(self):
-            return self.end
+        return self.end
     def redrawAll(self,canvas):
         pass
     def mousePressed(self,canvas):
@@ -267,6 +268,106 @@ You can try to replace the "Hello" with other things'''
             canvas.create_text(self.textWidth, self.textHeight, text=self.welcomeText, font="Calibri 25", fill="white")
 
 class MapScene(Scene):
-    pass
+    def __init__(self,root):
+        super().__init__(root)
+        self.init(root)
+        self.root.editor.configure(state="normal")
+        self.root.editor.delete('1.0', 'end')
+        self.root.content = ""
+        self.commands = []
+        self.counter = 0
+
+    def init(self,root):
+        self.mapbg = PhotoImage(file = "map.gif")
+        self.location = [0,0]
+        self.headImg = PhotoImage(file = "head.gif")
+        self.locations = [[[None,None]] * 3 for i in range(3)]
+        self.locations[0][0] = (328,88)
+        self.locations[1][0] = (335,321)
+        self.locations[2][0] = (334,499)
+        self.locations[1][1] = (430,322)
+        self.locations[1][2] = (602,322)
+        self.locations[2][1] = (522,492)
+        self.locations[2][2] = (644,503)
+
+    def mousePressed(self,event):
+        pass
+
+    def timerFired(self):
+        dialogContent = '''It's time to go back to your dorm Donner. 
+Please use the command that we provided to move to donner.'''
+        explanationContent = '''Available Commands:
+me.moveRight()
+me.moveLeft()
+me.moveUp()
+me.moveDown()'''
+        self.refreshText(self.root.dialog,dialogContent)
+        self.refreshText(self.root.explanation,explanationContent)
+        if self.root.content:
+            self.commands = list(self.root.content.splitlines())
+            self.root.content = ""
+        if self.commands:
+            self.counter += 1
+            if self.counter % 20 == 0:
+                move = self.commands.pop(0)
+                if self.isLegalMove(move):
+                    if move == "me.moveRight()":
+                        self.location[0],self.location[1] = self.location[0],self.location[1]+1
+                    elif move == "me.moveLeft()":
+                        self.location[0],self.location[1] = self.location[0],self.location[1]-1
+                    elif move == "me.moveUp()":
+                        self.location[0],self.location[1] = self.location[0]-1,self.location[1]
+                    elif move == "me.moveDown()":
+                        self.location[0],self.location[1] = self.location[0]+1,self.location[1]
+                else:
+                    self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your code.")
+                    self.root.explanation.tag_add("blue","1.0","1.5")
+                    self.root.explanation.tag_add("yellow","1.6","1.12")
+                    self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
+
+    def redrawAll(self,canvas):
+        canvas.create_image(0,0,anchor = NW,image=self.mapbg)
+        for row in range(len(self.locations)):
+            for col in range(len(self.locations[row])):
+                for i in (-1,0,1):
+                    if self.locations[row][col] != [None,None]:
+                        if (row+i) in (0,1,2) and self.locations[row+i][col] != [None,None]:
+                            canvas.create_line(self.locations[row][col][0],self.locations[row][col][1],
+                                self.locations[row+i][col][0],self.locations[row+i][col][1],fill = "turquoise2",width=5)
+                        if (col+i) in (0,1,2) and self.locations[row][col+i] != [None,None]:
+                            canvas.create_line(self.locations[row][col][0],self.locations[row][col][1],
+                                self.locations[row][col+i][0],self.locations[row][col+i][1],fill = "turquoise2",width=5)
+        for row in range(len(self.locations)):
+            for col in range(len(self.locations[row])):
+                if self.locations[row][col] != [None,None]:
+                    canvas.create_oval(self.locations[row][col][0]-10,self.locations[row][col][1]-10,
+                        self.locations[row][col][0]+10,self.locations[row][col][1]+10,fill = "DodgerBlue2")
+        canvas.create_image(self.locations[self.location[0]][self.location[1]][0],self.locations[self.location[0]][self.location[1]][1],anchor = CENTER,image=self.headImg)
+
+    def isLegalMove(self,command):
+        if command == "me.moveRight()":
+            if (self.location[1] + 1) in (0,1,2) and self.locations[self.location[0]][self.location[1]+1] != [None,None]:
+                return True
+            else:
+                return False
+        elif command == "me.moveLeft()":
+            if (self.location[1] - 1) in (0,1,2) and self.locations[self.location[0]][self.location[1]-1] != [None,None]:
+                return True
+            else:
+                return False
+        elif command == "me.moveUp()":
+            if (self.location[0] - 1) in (0,1,2) and self.locations[self.location[0]-1][self.location[1]] != [None,None]:
+                return True
+            else:
+                return False
+        elif command == "me.moveDown()":
+            if (self.location[0] + 1) in (0,1,2) and self.locations[self.location[0]+1][self.location[1]] != [None,None]:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+
 main = Main(600,700)
 main.run()
