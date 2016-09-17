@@ -276,6 +276,16 @@ class MapScene(Scene):
         self.root.content = ""
         self.commands = []
         self.counter = 0
+        self.stageNum = 0
+        dialogContent = '''It's time to go back to your dorm Donner. 
+Please use the command that we provided to move to donner.'''
+        explanationContent = '''Available Commands:
+me.moveRight()
+me.moveLeft()
+me.moveUp()
+me.moveDown()'''
+        self.refreshText(self.root.dialog,dialogContent)
+        self.refreshText(self.root.explanation,explanationContent)
 
     def init(self,root):
         self.mapbg = PhotoImage(file = "map.gif")
@@ -294,36 +304,34 @@ class MapScene(Scene):
         pass
 
     def timerFired(self):
-        dialogContent = '''It's time to go back to your dorm Donner. 
-Please use the command that we provided to move to donner.'''
-        explanationContent = '''Available Commands:
+        if self.stageNum != 1:
+            if self.root.content:
+                self.commands = list(self.root.content.splitlines())
+                self.root.content = ""
+                explanationContent = '''Available Commands:
 me.moveRight()
 me.moveLeft()
 me.moveUp()
 me.moveDown()'''
-        self.refreshText(self.root.dialog,dialogContent)
-        self.refreshText(self.root.explanation,explanationContent)
-        if self.root.content:
-            self.commands = list(self.root.content.splitlines())
-            self.root.content = ""
-        if self.commands:
-            self.counter += 1
-            if self.counter % 20 == 0:
-                move = self.commands.pop(0)
-                if self.isLegalMove(move):
-                    if move == "me.moveRight()":
-                        self.location[0],self.location[1] = self.location[0],self.location[1]+1
-                    elif move == "me.moveLeft()":
-                        self.location[0],self.location[1] = self.location[0],self.location[1]-1
-                    elif move == "me.moveUp()":
-                        self.location[0],self.location[1] = self.location[0]-1,self.location[1]
-                    elif move == "me.moveDown()":
-                        self.location[0],self.location[1] = self.location[0]+1,self.location[1]
-                else:
-                    self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your code.")
-                    self.root.explanation.tag_add("blue","1.0","1.5")
-                    self.root.explanation.tag_add("yellow","1.6","1.12")
-                    self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
+                self.refreshText(self.root.explanation,explanationContent)
+            if self.commands:
+                self.counter += 1
+                if self.counter % 20 == 0:
+                    move = self.commands.pop(0)
+                    if self.isLegalMove(move):
+                        if move == "me.moveRight()":
+                            self.location[0],self.location[1] = self.location[0],self.location[1]+1
+                        elif move == "me.moveLeft()":
+                            self.location[0],self.location[1] = self.location[0],self.location[1]-1
+                        elif move == "me.moveUp()":
+                            self.location[0],self.location[1] = self.location[0]-1,self.location[1]
+                        elif move == "me.moveDown()":
+                            self.location[0],self.location[1] = self.location[0]+1,self.location[1]
+                    else:
+                        self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!! Please check your code.")
+                        self.root.explanation.tag_add("error","end -{0}c".format(len("Error!! Please check your code.")+1),"end")
+                    if self.location == [2,2]:
+                        self.stageNum = 1
 
     def redrawAll(self,canvas):
         canvas.create_image(0,0,anchor = NW,image=self.mapbg)
@@ -343,6 +351,8 @@ me.moveDown()'''
                     canvas.create_oval(self.locations[row][col][0]-10,self.locations[row][col][1]-10,
                         self.locations[row][col][0]+10,self.locations[row][col][1]+10,fill = "DodgerBlue2")
         canvas.create_image(self.locations[self.location[0]][self.location[1]][0],self.locations[self.location[0]][self.location[1]][1],anchor = CENTER,image=self.headImg)
+        if self.stageNum == 1:
+            canvas.create_text(self.width//2,self.height//2,anchor=CENTER,text="You are back to Donner!",font = "Times 50",fill = "blue")
 
     def isLegalMove(self,command):
         if command == "me.moveRight()":
