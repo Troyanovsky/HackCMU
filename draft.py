@@ -8,7 +8,7 @@ from lib import *
 class Main(object):
     def __init__(self,width,height):
         # self.sceneNum = 0
-        self.sceneNum = 1
+        self.sceneNum = 0
         self.width = width
         self.height = height
         self.timerDelay = 10
@@ -78,7 +78,7 @@ class Main(object):
         root.editor.grid(row=0, column=1, sticky="NS")
         root.explanation = Text(root, background="bisque2", foreground='black', wrap="none",
                                 borderwidth=0, highlightthickness=0, undo=True,
-                                insertbackground="black",state="disabled")
+                                insertbackground="black",state="disabled",font="40")
         root.explanation.grid(row=1, column=1, sticky="S")
         root.explanation.tag_configure("yellow",foreground = "#ff4500")
         root.explanation.tag_configure("blue",foreground = "#64d6eb")
@@ -96,11 +96,12 @@ class Main(object):
         self.mode.timerFired()
         if self.mode.isEnd():
             self.sceneNum +=1
-            if type(self.mode) == MapScene :
-                self.cacheScene()
-                self.buildScene()
-            else:
-                self.loadScene()
+            self.buildScene()
+            # if type(self.mode) == MapScene :
+            #     self.cacheScene()
+            #     self.buildScene()
+            # else:
+            #     self.loadScene()
     def init(self):
         self.buildScene()
     def buildScene(self):
