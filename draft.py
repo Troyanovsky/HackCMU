@@ -1,313 +1,164 @@
 from tkinter import *
 from tkinter import ttk
-import string
+import copy
+from random import randint
+from lib import *
 
-def run():
-    root = Tk()
-    initFrames(root)
-    initTags(root.editor)
-    root.time = 0
-    recolorizeAll(root.editor,root)
-    # updateLineNumber(root)
-    # root.words = reservedWords()
-    # root.listbox = Listbox(root.text)
-    #redirect closing window to a confirmation message
-    root.mainloop()
+class Animation(object):
+    # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
+    ####################################
+    def run(self, width=600, height=700):
+        def redrawAllWrapper(canvas):
+            canvas.delete(ALL)
+            self.redrawAll(canvas)
+            canvas.update()
 
-def initFrames(root):
-    root.canvas = Canvas(root,background = "black",height=600,width=700)
-    root.dialog = Text(root,background="gray13", foreground = 'white', wrap = "none",
-                        borderwidth=0, highlightthickness=0, undo = True,
-                        insertbackground = "white")
-    root.canvas.grid(row=0,column=0)
-    root.dialog.grid(row=1,column=0,sticky="WE")
-    root.editor = Text(root,background="gray13", foreground = 'white', wrap = "none",
-                        borderwidth=0, highlightthickness=0, undo = True,
-                        insertbackground = "white")
-    root.editor.grid(row=0,column=1,sticky="NS")
-    root.explanation = Text(root,background="bisque2", foreground = 'black', wrap = "none",
-                        borderwidth=0, highlightthickness=0, undo = True,
-                        insertbackground = "black")
-    root.explanation.grid(row=1,column=1,sticky="S")
+        def mousePressedWrapper(event, canvas):
+            self.mousePressed(event)
+            redrawAllWrapper(canvas)
 
-################################
-# syntax highlighting
-def recolorize(text):
-    for line in range(1, int(text.index('end').split('.')[0])):
-        colorizeLine(text,line)
-    callWithLargeStack(addComment,text)
-    tripleQuote(text)
-    lineMax = 200
-    if int(text.index("end").split(".")[0]) < lineMax:
-        checkBracket(text)
-    else:
-        start = text.index("insert linestart")
-        end = text.index("insert lineend")
-        checkBracket(text,start,end)
+        def keyPressedWrapper(event, canvas):
+            self.keyPressed(event)
+            redrawAllWrapper(canvas)
 
-def tripleQuote(text):
-    #check for triple quotes in the text
-    content = text.get("1.0","end")
-    unbalanced,start,triples = 0,0,[]
-    for i in range(len(content)-len("''")):
-        if unbalanced == 0:
-            if content[i:i+len("'''")] == "'''":
-                unbalanced = 1
-                unmatched = "'''"
-                start = i
-            elif content[i:i+len('"""')] == '"""':
-                unbalanced = 1
-                unmatched = '"""'
-                start = i
-        else:
-            if content[i:i+len("'''")] == unmatched:
-                unbalanced,unmatched = 0,""
-                end = i + len("'''")
-                triples.append((start,end))
-    if unbalanced == 1: triples.append((start,len(content)))
-    addTriple(text,triples,content)
+        def timerFiredWrapper(canvas):
+            self.timerFired()
+            redrawAllWrapper(canvas)
+            # pause, then call timerFired again
+            canvas.after(self.timerDelay, timerFiredWrapper, canvas)
+        # Set up data and call init
+        self.width = width
+        self.height = height
+        self.timerDelay = 10 # milliseconds
+        self.init()
+        # create the root and the canvas
+        root = Tk()
+        self.initFrames(root)
+        initTags(root.editor)
+        root.time = 0
+        recolorizeAll(root.editor, root)
+        # updateLineNumber(root)
+        # root.words = reservedWords()
+        # root.listbox = Listbox(root.text)
+        # redirect closing window to a confirmation message
 
-#add tags to the triple quotes identified
-def addTriple(text,triples,content):
-    for (start,end) in triples:
-        string = content[start:end]
-        index = text.search(string,"1.0",stopindex="end")
-        text.tag_add("string",index,"{0} +{1}c".format(index,len(string)))
+        # set up events
+        root.bind("<Button-1>", lambda event:
+                                mousePressedWrapper(event, root.canvas))
+        root.bind("<Key>", lambda event:
+                                keyPressedWrapper(event, root.canvas))
+        timerFiredWrapper(root.canvas)
+        # and launch the app
+        root.update_idletasks()
+        # get actual width
+        self.width,self.height = (root.canvas.winfo_width(),root.canvas.winfo_height())
+        print("Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
+        root.mainloop()  # blocks until window is closed
+        print("bye!")
 
-def recolorizeAll(text,root):
-    recolorize(text)
-    delay = 300
-    root.time += delay
-    root.callback = text.after(delay,recolorizeAll,text,root)
+    def initFrames(self,root):
+        root.canvas = Canvas(root, background="black", height=self.width, width=self.height)
+        root.dialog = Text(root, background="gray13", foreground='white', wrap="none",
+                           borderwidth=0, highlightthickness=0, undo=True,
+                           insertbackground="white")
+        root.canvas.grid(row=0, column=0)
+        root.dialog.grid(row=1, column=0, sticky="WE")
+        root.editor = Text(root, background="gray13", foreground='white', wrap="none",
+                           borderwidth=0, highlightthickness=0, undo=True,
+                           insertbackground="white")
+        root.editor.grid(row=0, column=1, sticky="NS")
+        root.explanation = Text(root, background="bisque2", foreground='black', wrap="none",
+                                borderwidth=0, highlightthickness=0, undo=True,
+                                insertbackground="black")
+        root.explanation.grid(row=1, column=1, sticky="S")
 
-def colorizeLine(text,line):
-    content = text.get("{0}.0".format(line),"{0}.end".format(line))
-    addTags(lineParsing(content),text,line)
+    def redrawAll(self,canvas):
+        pass
+    def mousePressed(self,canvas):
+        pass
+    def keyPressed(self,canvas):
+        pass
+    def timerFired(self):
+        pass
+    def init(self):
+        pass
 
-#recursively colorize commented lines
-def addComment(text,startIndex = "1.0"):
-    startIndex = text.search("#", startIndex,stopindex=END)
-    if not startIndex:
-        return None
-    endIndex = '{0}.end'.format(startIndex.split(".")[0])
-    if "string" not in text.tag_names(startIndex):
-        clearTagsRange(text,startIndex,endIndex)
-        text.tag_add("comment",startIndex,endIndex)
-    addComment(text,endIndex)
+class WelcomeScreen(Animation):
+    def __inti__(self):
+        self.init()
+    def isEnd(self):
+        return self.end
+    def init(self):
+        self.end = False
+        self.time = 0
+        self.textIndexTup = [0,0]
+        self.welcomeText = "> Hi There, Welcome to CMU\n"
+    def mousePressed(self,event):
+        # use event.x and event.y
+        pass
+    def keyPressed(self,event):
+        # # use event.char and event.keysym
+        # if not self.end:
+        #     if event.keysym == "Left" and data.player.x > 5:
+        #         data.player.movex(True)
+        #     elif event.keysym == 'Right'and data.player.x < data.width -5:
+        #         data.player.movex(False)
+        #     elif event.keysym == "space" and data.fireTime >= 20:
+        #         if data.score < 1000:
+        #             data.missile.append(Missile(data.player.getPos(),-10))
+        #         elif data.score < 2500:
+        #             Missile.sizex = 2
+        #             data.missile.append(Missile(
+        #                 (data.player.getPos()[0]-3,data.player.getPos()[1])
+        #                  ,-10,"yellow"))
+        #             data.missile.append(Missile(
+        #                 (data.player.getPos()[0]+3,data.player.getPos()[1])
+        #                 ,-10,"yellow"))
+        #         elif data.score< 3000:
+        #             Missile.sizex = 2
+        #             data.missile.append(Missile(
+        #                 (data.player.getPos()[0]-5,data.player.getPos()[1])
+        #                  ,-10,'blue'))
+        #             data.missile.append(Missile(
+        #                 (data.player.getPos()[0],data.player.getPos()[1])
+        #                  ,-10,'blue'))
+        #             data.missile.append(Missile(
+        #                 (data.player.getPos()[0]+5,data.player.getPos()[1])
+        #                 ,-10,'blue'))
+        #         else:
+        #             for i in range (5):
+        #                 data.missile.append(Missile(
+        #                     (data.player.getPos()[0] - 7.5 + 5*i,
+        #                         350 - 20*sin(3.1415926/5*i))
+        #                      ,-10,'blue'))
+        #         data.fireTime = 0
+        pass
+    def timerFired(self):
+        self.time+=1
+        pass
+    def redrawAll(self,canvas):
+        #draw in canvas
+        #draw back ground
+        canvas.create_rectangle(0,0,self.width,self.height,fill='black', width = 0)
+        #draw <<
 
-#analyze a line into its parts and describe their syntactic roles.
-def lineParsing(s):
-    (parsed,word,unbalanced,possible) = initParsing()
-    for c in s:
-        if unbalanced != 0:
-            word += c
-            if c == quotation:
-                parsed.append(word)
-                word,unbalanced,quotation = "",0,None
-        elif c in possible:
-            word += c
-        else:
-            if word: parsed.append(word)
-            word = ""
-            if c in ["'",'"']:
-                quotation = "'" if c == "'" else '"'
-                unbalanced += 1
-                word += c
+        if (self.welcomeText[self.textIndexTup[0]].isalpha()):
+            if (self.time - self.textIndexTup[1] > randint(3,4)):
+                self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
+                self.textIndexTup[1] = self.time
             else:
-                parsed.append(c)
-    if word: parsed.append(word)
-    return parsed
-
-def initParsing():
-    possible = set([c for c in string.ascii_letters+string.digits])
-    (parsed,word,unbalanced) = ([],"",0)
-    return (parsed,word,unbalanced,possible)
-
-#add tags to the parsed parts according to their syntactic role
-def addTags(parsed,text,line,index=0):
-    clearLineTags(text,line)
-    definition,statement,value = initWords()
-    for word in parsed:
-        if word in definition:
-            text.tag_add("definition","{0}.{1}".format(line,index),
-                        "{0}.{1}".format(line,index+len(word)))
-        elif word in statement:
-            text.tag_add("statement","{0}.{1}".format(line,index),
-                        "{0}.{1}".format(line,index+len(word)))
-        elif word in value or isNumber(word):
-            text.tag_add("value","{0}.{1}".format(line,index),
-                        "{0}.{1}".format(line,index+len(word)))
-        else:
-            try:
-                if type(eval(word)) == str:
-                    text.tag_add("string","{0}.{1}".format(line,index),
-                                "{0}.{1}".format(line,index+len(word)))
-            except:
                 pass
-        index += len(word)
-
-def isNumber(word):
-    for c in word:
-        if c not in string.digits:
-            return False
-    return True
-
-#clears tags from beginning to end
-def clearLineTags(text,line):
-    text.tag_remove("definition","{0}.0".format(line),"{0}.end".format(line))
-    text.tag_remove("statement","{0}.0".format(line),"{0}.end".format(line))
-    text.tag_remove("value","{0}.0".format(line),"{0}.end".format(line))
-    text.tag_remove("string","{0}.0".format(line),"{0}.end".format(line))
-    text.tag_remove("comment","{0}.0".format(line),"{0}.end".format(line))
-    text.tag_remove("openBracket","{0}.0".format(line),"{0}.end".format(line))
-
-#clears tags in a certain range
-def clearTagsRange(text,startIndex,endIndex):
-    text.tag_remove("definition",startIndex,endIndex)
-    text.tag_remove("statement",startIndex,endIndex)
-    text.tag_remove("value",startIndex,endIndex)
-    text.tag_remove("string",startIndex,endIndex)
-    text.tag_remove("comment",startIndex,endIndex)
-    text.tag_remove("openBracket",startIndex,endIndex)
-
-def initWords():
-    definition = set(["def", "class", "lambda", "abs", "dict", "help", "min", 
-            "setattr", "all", "dir ", "hex ", "next", "slice", "any ", 
-            "divmod", "id", "object", "sorted", "ascii", "enumerate", 
-            "input", "oct", "staticmethod", "bin", "eval", "int", 
-            "open", "str", "bool", "isinstance ", "ord", "sum", 
-            "bytearray", "filter", "issubclass ", "pow", "super", 
-            "bytes", "float", "iter", "tuple", "callable", "format", 
-            "len", "property", "type", "chr", "frozenset", "list", 
-            "range", "vars", "classmethod", "getattr", "locals", 
-            "repr", "zip", "compile ", "globals", "map", "reversed", 
-            "complex", "hasattr", "max", "round", "delattr", 
-            "hash", "memoryview", "set"])
-    statement = set(["print", "exec", "and", "or", "not", "<", ">",
-            "=", "!", "is", "in", "*", "/", "-", "+",
-            "|", "^", "%", "~","from","import","return",
-            "assert", "pass", "del", "yield", "raise", "break", 
-            "continue", "global", "nonlocal","for","while","if","else",
-            "try","except","finally","with","elif"])
-    value = set(["None", "True", "False", "NotImplemented", "Ellipsis"])
-    return definition,statement,value
-
-def initTags(text):
-    text.tag_configure("exceed", underline = True)
-    text.tag_configure("definition",foreground = "#64d6eb")
-    text.tag_configure("statement",foreground = "#f92672")
-    text.tag_configure("value",foreground = "#ae81ff")
-    text.tag_configure("string",foreground = "#d7cc6c")
-    text.tag_configure("comment",foreground = "#75715e")
-    text.tag_configure("openBracket", background = "red")
-
-def callWithLargeStack(f, *args):
-    import sys
-    import threading
-    sys.setrecursionlimit(2**14) # max recursion depth of 16384
-    isWindows = (sys.platform.lower() in ["win32", "cygwin"])
-    if (not isWindows): return f(*args) # sadness...
-    threading.stack_size(2**27)  # 64MB stack
-    # need new thread to get the redefined stack size
-    def wrappedFn(resultWrapper): resultWrapper[0] = f(*args)
-    resultWrapper = [None]
-    #thread = threading.Thread(target=f, args=args)
-    thread = threading.Thread(target=wrappedFn, args=[resultWrapper])
-    thread.start()
-    thread.join()
-    return resultWrapper[0]
-
-################################
-# bracket check
-
-# loop through the text once and mark the unbalanced brackets using
-# the Stack defined earlier. Takes time of O(n).
-def checkBracket(text,start="1.0",end="end"):
-    text.tag_remove("openBracket",start,end)
-    content,stack,pairing,reverse = initBracket(text,start,end)
-    for i in range(len(content)): #loop through text
-        if ("string" not in text.tag_names("{0} +{1}c".format(start,i))
-            and "comment" not in text.tag_names("{0} +{1}c".format(start,i))):
-            #only check for brackets out of strings
-            current = text.get("{0} +{1}c".format(start,i))
-            if current in pairing: #if current is start of bracket
-                stack.push((current,i)) #push into stack
-            elif current in reverse: #if it is close bracket
-                if stack.isEmpty():
-                    #it is a unbalanced bracket if there is no start bracket
-                    text.tag_add("openBracket","{0} +{1}c".format(start,i))
-                else:
-                    #check for matching bracket
-                    if stack.peek()[0] != reverse[current][0]:
-                        text.tag_add("openBracket","{0} +{1}c".format(start,i))
-                    else:
-                        stack.pop()
-    #tag brackets if there are still brackets unmatched
-    if not stack.isEmpty():
-        for (c,i) in stack:
-            text.tag_add("openBracket","{0} +{1}c".format(start,i))
-
-def initBracket(text,start="1.0",end="end"):
-    content = text.get(start,end)
-    stack = Stack()
-    pairing = {"[":"]","{":"}","(":")"}
-    reverse = dict()
-    for key in pairing:
-        reverse[pairing[key]] = key
-    return content,stack,pairing,reverse
-
-################################
-# defining Stack class/Exceptions for bracket matching
-class EmptyStackError(Exception):
-    def __init__(self):
-            super().__init__("Stack is empty")
-
-class FullStackError(Exception):
-        def __init__(self):
-                super().__init__("Stack is full")
-
-class Stack(object):
-        def __init__(self, maxSize=100):
-            self.maxSize = maxSize
-            self.data = []
-
-        def isEmpty(self):
-            if self.size() == 0:
-                return True
+        else:
+            if (self.time - self.textIndexTup[1] > randint(4,6)):
+                self.textIndexTup[0] = min(self.textIndexTup[0]+1, len(self.welcomeText) - 1)
+                self.textIndexTup[1] = self.time
             else:
-                return False
+                pass
+        textIndex = self.textIndexTup[0]
+        printedText = self.welcomeText[0:textIndex]
+        canvas.create_text(self.width/2,self.height/2,text=printedText,font = "Calibri 25", fill = "white")
 
-        def isFull(self):
-            if self.size() == self.maxSize:
-                return True
-            else:
-                return False
-
-        def push(self, data):
-            if not self.isFull():
-                self.data.append(data)
-                return data
-            else:
-                raise FullStackError()
-
-        def pop(self):
-            if not self.isEmpty():
-                output = self.data[self.size()-1]
-                del self.data[self.size()-1]
-                return output
-            else:
-                raise EmptyStackError()  
-
-        def size(self):
-            return len(self.data)
-
-        def peek(self):
-            if self.isEmpty():
-                raise EmptyStackError
-            return self.data[self.size()-1]
-
-        def __iter__(self):
-            return iter(self.data)
+scene1 = WelcomeScreen()
+scene1.run(600,700)
 
 
-run()
