@@ -6,57 +6,53 @@ from lib import *
 
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
-    # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
-    def run(self, width=600, height=700):
-        def redrawAllWrapper(canvas):
-            canvas.delete(ALL)
-            self.redrawAll(canvas)
-            canvas.update()
-
-        def mousePressedWrapper(event, canvas):
-            self.mousePressed(event)
-            redrawAllWrapper(canvas)
-
-        def keyPressedWrapper(event, canvas):
-            self.keyPressed(event)
-            redrawAllWrapper(canvas)
-
-        def timerFiredWrapper(canvas):
-            self.timerFired()
-            redrawAllWrapper(canvas)
-            # pause, then call timerFired again
-            canvas.after(self.timerDelay, timerFiredWrapper, canvas)
-        # Set up data and call init
+    def __init__(self,width,height):
         self.width = width
         self.height = height
-        self.timerDelay = 10 # milliseconds
-        self.init()
+        self.timerDelay = 10
         # create the root and the canvas
-        root = Tk()
-        self.initFrames(root)
-        initTags(root.editor)
-        root.time = 0
-        recolorizeAll(root.editor, root)
+        self.root = Tk()
+        self.initFrames(self.root)
+        #global func
+        initTags(self.root.editor)
+        self.root.time = 0
+        self.init()
+        #global func
+        recolorizeAll(self.root.editor,self.root)
         # updateLineNumber(root)
         # root.words = reservedWords()
         # root.listbox = Listbox(root.text)
         # redirect closing window to a confirmation message
 
+    # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
+    def run(self):
+        def redrawAllWrapper(canvas):
+            canvas.delete(ALL)
+            self.redrawAll(canvas)
+            canvas.update()
+        def mousePressedWrapper(event, canvas):
+            self.mousePressed(event)
+            redrawAllWrapper(canvas)
+        def keyPressedWrapper(event, canvas):
+            self.keyPressed(event)
+            redrawAllWrapper(canvas)
+        def timerFiredWrapper(canvas):
+            self.timerFired()
+            redrawAllWrapper(canvas)
+            # pause, then call timerFired again
+            canvas.after(self.timerDelay, timerFiredWrapper, canvas)
         # set up events
-        root.bind("<Button-1>", lambda event:
-                                mousePressedWrapper(event, root.canvas))
-        root.bind("<Key>", lambda event:
-                                keyPressedWrapper(event, root.canvas))
-        timerFiredWrapper(root.canvas)
+        self.root.bind("<Button-1>", lambda event:
+                                mousePressedWrapper(event, self.root.canvas))
+        self.root.bind("<Key>", lambda event:
+                                keyPressedWrapper(event, self.root.canvas))
+        timerFiredWrapper(self.root.canvas)
 
         # and launch the app
-        root.update_idletasks()
+        self.root.update_idletasks()
         # get actual width
-        self.width,self.height = (root.canvas.winfo_width(),root.canvas.winfo_height())
-        #TODO
         print("Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
-        self.root = root
-        root.mainloop()  # blocks until window is closed
+        self.root.mainloop()  # blocks until window is closed
         print("bye!")
 
     def initFrames(self,root):
@@ -76,20 +72,31 @@ class Main(object):
         root.explanation.grid(row=1, column=1, sticky="S")
 
     def redrawAll(self,canvas):
-        pass
+        self.mode.redrawAll(canvas)
     def mousePressed(self,canvas):
-        pass
+        self.mode.mousePressed(canvas)
     def keyPressed(self,canvas):
-        pass
+        self.mode.keyPressed(canvas)
     def timerFired(self):
-        pass
+        self.mode.timerFired()
     def init(self):
         self.mode = WelcomeScreen(self.root)
 
 # Scene class parent that dispatch the actual drawing and interaction with text widgets
 class Scene(object):
-    def __inti__(self,root,width,height):
-        self.init(root,width,height)
+    def __init__(self,root):
+        self.root = root
+        self.end = False
+
+        # text editor stage number
+        # will be update when a stage is finished
+        # need to be checked by text interactive widget to decide phase
+        self.stageNum = 0
+        self.stageNext = False
+        self.root.update_idletasks()
+        self.width, self.height = (self.root.canvas.winfo_width(), self.root.canvas.winfo_height())
+    def isEnd(self):
+            return self.end
     def redrawAll(self,canvas):
         pass
     def mousePressed(self,canvas):
@@ -98,23 +105,14 @@ class Scene(object):
         pass
     def timerFired(self):
         pass
-    def init(self):
+    def init(self,root):
         pass
 class WelcomeScreen(Scene):
-    def __inti__(self,root,width,height):
-        self.init(root,width,height)
-    def isEnd(self):
-        return self.end
-    def init(self,root,width,height):
-        self.root = root
-        self.end = False
-
-        # text editor stage number
-        # will be update when a stage is finished
-        # meed to be checked by text interactive widget to decide phase
-        self.stageNum = 0
-        self.stageNext = False
-
+    def __init__(self,root):
+        super().__init__(root)
+        self.init(root)
+    def init(self,root):
+        print("WLC SCR Canvas width = {0}, Canvas height {1}".format(self.width, self.height))
         self.time = 0 # timer
         self.textWidth = self.width / 2
         self.textHeight = self.height / 2
@@ -192,7 +190,7 @@ class WelcomeScreen(Scene):
         printedText = self.welcomeText[0:textIndex]
         canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
 
-scene1 = WelcomeScreen()
-scene1.run(600,700)
+main = Main(600,700)
+main.run()
 
 
