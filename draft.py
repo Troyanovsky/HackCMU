@@ -18,12 +18,18 @@ class Main(object):
         initTags(self.root.editor)
         self.root.time = 0
         self.init()
+        self.root.content = ""
         #global func
+        self.root.bind("<Command-b>", lambda event:
+                                self.getUserInput())
         recolorizeAll(self.root.editor,self.root)
         # updateLineNumber(root)
         # root.words = reservedWords()
         # root.listbox = Listbox(root.text)
         # redirect closing window to a confirmation message
+
+    def getUserInput(self):
+        self.root.content = self.root.editor.get("1.0", "end")
 
     # run(self) adapted from http://www.cs.cmu.edu/~112/notes/events-example0.py
     def run(self):
@@ -60,17 +66,18 @@ class Main(object):
         root.canvas = Canvas(root, background="black", height=self.width, width=self.height)
         root.dialog = Text(root, background="gray13", foreground='white', wrap="none",
                            borderwidth=0, highlightthickness=0, undo=True,
-                           insertbackground="white")
+                           insertbackground="white",state="disabled")
         root.canvas.grid(row=0, column=0)
         root.dialog.grid(row=1, column=0, sticky="WE")
         root.editor = Text(root, background="gray13", foreground='white', wrap="none",
                            borderwidth=0, highlightthickness=0, undo=True,
-                           insertbackground="white")
+                           insertbackground="white",state="disabled")
         root.editor.grid(row=0, column=1, sticky="NS")
         root.explanation = Text(root, background="bisque2", foreground='black', wrap="none",
                                 borderwidth=0, highlightthickness=0, undo=True,
-                                insertbackground="black")
+                                insertbackground="black",state="disabled")
         root.explanation.grid(row=1, column=1, sticky="S")
+
 
     def redrawAll(self,canvas):
         self.mode.redrawAll(canvas)
@@ -123,6 +130,14 @@ class Scene(object):
         pass
     def init(self,root):
         pass
+
+    def refreshText(self,text, content):
+        text.configure(state="normal")
+        text.delete('1.0', 'end')
+        text.insert('1.0', content)
+        text.config(state="disabled")
+
+
 class WelcomeScreen(Scene):
     def __init__(self,root):
         super().__init__(root)
@@ -183,7 +198,17 @@ class WelcomeScreen(Scene):
         if not self.stageNext and self.textIndexTup[0] >= (len(self.welcomeText) - 1):
             self.stageNum += 1
             self.stageNext = True
-        pass
+        if self.stageNum == 1:
+            self.root.editor.config(state="normal")
+            dialogContent = '''You can try to type the following script on the right and press Command + b:
+print("Hello")'''
+            explanationContent = '''print(String) is a function.
+You can try to replace the "Hello" with other thing'''
+            self.refreshText(self.root.dialog,dialogContent)
+            self.refreshText(self.root.explanation,explanationContent)
+            print(self.root.content)
+
+
     def redrawAll(self,canvas):
         #draw in canvas
         #draw back ground
@@ -210,5 +235,3 @@ class MapScene(Scene):
     pass
 main = Main(600,700)
 main.run()
-
-
