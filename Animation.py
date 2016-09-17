@@ -63,7 +63,7 @@ class WelcomeScreen(Animation):
         self.end = False
         self.time = 0
         self.textIndexTup = [0,0]
-        self.welcomeText = "> Hi There, Welcome to CMU\n"
+        self.welcomeText = "> Hi There, \n> Welcome to CMU\n"
     def mousePressed(self,event):
         # use event.x and event.y
         pass
