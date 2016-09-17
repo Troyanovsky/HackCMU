@@ -81,6 +81,7 @@ class Main(object):
         root.explanation.tag_configure("yellow",foreground = "#d7cc6c")
         root.explanation.tag_configure("blue",foreground = "#64d6eb")
         root.explanation.tag_configure("green",foreground = "green2")
+        root.explanation.tag_configure("red",foreground = "red")
 
     def redrawAll(self,canvas):
         self.mode.redrawAll(canvas)
@@ -220,8 +221,13 @@ You can try to replace the "Hello" with other things'''
             if (self.root.content.strip().startswith('print("') and 
                 self.root.content.strip().endswith('")')):
                 self.scene1Content = self.root.content.strip()[7:-2]
+                print(self.scene1Content)
         except:
-            self.refreshText(self.root.explanation,explanationContent+"\nError!!")
+            self.refreshText(self.root.explanation,self.root.explanation.get('1.0',"end")+"\nError!!")
+            self.root.explanation.tag_add("blue","1.0","1.5")
+            self.root.explanation.tag_add("yellow","1.6","1.12")
+            self.root.explanation.tag_add("red","end -8c","end")
+
 
     def redrawAll(self,canvas):
         #draw in canvas
