@@ -7,6 +7,7 @@ from lib import *
 # Main class runs the whole game and manges transformations between stages.
 class Main(object):
     def __init__(self,width,height):
+        self.sceneNum = 0
         self.width = width
         self.height = height
         self.timerDelay = 10
@@ -79,9 +80,24 @@ class Main(object):
         self.mode.keyPressed(canvas)
     def timerFired(self):
         self.mode.timerFired()
+        if self.mode.isEnd():
+            self.sceneNum +=1
+            if type(self.mode) == MapScene :
+                self.cacheScene()
+                self.buildScene()
+            else:
+                self.loadScene()
     def init(self):
-        self.mode = WelcomeScreen(self.root)
-
+        self.buildScene()
+    def buildScene(self):
+        if (self.sceneNum == 0):
+            self.mode = WelcomeScreen(self.root)
+        elif (self.sceneNum == 1):
+            self.mode = MapScene()
+    def cacheScene(self):
+        self.sceneCache = self.mode
+    def loadScene(self):
+        self.mode = self.sceneCache
 # Scene class parent that dispatch the actual drawing and interaction with text widgets
 class Scene(object):
     def __init__(self,root):
@@ -190,6 +206,8 @@ class WelcomeScreen(Scene):
         printedText = self.welcomeText[0:textIndex]
         canvas.create_text(self.textWidth,self.textHeight,text=printedText,font = "Calibri 25", fill = "white")
 
+class MapScene(Scene):
+    pass
 main = Main(600,700)
 main.run()
 
